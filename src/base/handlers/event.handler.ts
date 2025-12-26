@@ -2,7 +2,7 @@ import CustomClient from '../CustomClient';
 import ReadyEvent from './events/ready.event';
 
 class EventHandler {
-  readonly events = [ReadyEvent];
+  private readonly events = [ReadyEvent];
 
   public loadEvents(): void {
     for (const event of this.events) {
