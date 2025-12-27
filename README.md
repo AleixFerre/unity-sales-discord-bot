@@ -42,18 +42,6 @@ Discord bot that monitors Unity Asset Store promotions and posts alerts for:
    cp .env.template .env
    ```
 
-   `.env` template:
-
-   ```
-   TOKEN="token"
-   CLIENT_ID="client_id"
-   DEFAULT_GUILD_ID="default_guild_id"
-   OWNER_ID="owner_id"
-   PREFIX="!"
-   API_PORT="3000"
-   API_TOKEN="change_me"
-   ```
-
 4. Run the bot
    - Bun: `bun run src/index.ts`
    - npm: `npm run start`
@@ -68,7 +56,7 @@ Discord bot that monitors Unity Asset Store promotions and posts alerts for:
 
 ## HTTP API
 
-The API starts when the bot is ready. Configure `API_PORT` (defaults to 3000).
+The API starts when the bot is ready. Configure `PORT` (defaults to 3000).
 If `API_TOKEN` is set, requests must include `Authorization: Bearer <token>`.
 
 Endpoint:
@@ -122,4 +110,5 @@ curl -X POST http://localhost:3000/message \
 - No alerts: check the polling interval and discount threshold
 
 ## License
-MIT
+
+[LICENSE]
