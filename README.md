@@ -1,4 +1,6 @@
-# Unity Sales Discord Bot
+# Unity Sales Discord Bot (Backend)
+_Important: this project is meant to run alongside the frontend. Grab both repos._
+_Frontend repo: https://github.com/AleixFerre/unity-sales-discord-bot-frontend_
 
 Discord bot that monitors Unity Asset Store promotions and posts alerts for:
 
@@ -7,57 +9,64 @@ Discord bot that monitors Unity Asset Store promotions and posts alerts for:
 - coupon codes
 - good-value bundles and limited-time deals
 
-## Features
-
-- Automatic sale detection with configurable thresholds
-- Separate channels or role pings per alert type
-- Deduping to avoid repeat notifications
-- Simple config via environment variables
-- Optional HTTP API to send messages to a channel
+Includes an optional HTTP API so the frontend can send custom embeds to a channel.
 
 ## Requirements
 
 - Node.js 18+
-- Bun (recommended) or npm
+- Bun or npm
 - A Discord bot token
 
-## Setup
+## Install
 
-1. Clone and install dependencies
+```bash
+cd unity-sales-backend
+bun install
+```
 
-   - Bun: `bun install`
-   - npm: `npm install`
+If you prefer npm:
 
-2. Create a Discord bot and invite it to your server
+```bash
+npm install
+```
 
-   - Create an application in the Discord Developer Portal
-   - Add a bot and copy the token
-   - Invite with the appropriate permissions (Send Messages, Embed Links)
+## Configure
 
-3. Configure environment variables
+Copy the template and fill the values:
 
-   Copy the template and edit the values:
+```bash
+cp .env.template .env
+```
 
-   ```
-   cp .env.template .env
-   ```
+Key variables:
 
-4. Run the bot
-   - Bun: `bun run src/index.ts`
-   - npm: `npm run start`
+- `TOKEN`: Discord bot token
+- `CLIENT_ID`: Discord application client ID
+- `OWNER_ID`: Discord user ID that owns/admins the bot
+- `API_PORT` or `PORT`: HTTP API port (default 3000)
+- `API_TOKEN`: Bearer token required by the HTTP API
+- `ALLOWED_ORIGINS`: comma-separated CORS origins
+- `DATABASE_URL`: Postgres connection string (required if database features are enabled)
 
-## How It Works
+## Run locally
 
-- Polls Unity Asset Store promotions on an interval
-- Classifies promotions into free, discount, coupon, and deal buckets
-- Sends a message embed to the configured channel(s)
-- Skips items already announced
-- Optional HTTP API exposes a POST endpoint to send messages or embeds
+```bash
+bun run dev
+```
+
+This starts the bot and the HTTP API once the bot is ready.
+
+## Build and run (production)
+
+```bash
+npm run build
+npm start
+```
 
 ## HTTP API
 
-The API starts when the bot is ready. Configure `PORT` (defaults to 3000).
-If `API_TOKEN` is set, requests must include `Authorization: Bearer <token>`.
+The API listens on `API_PORT`/`PORT`. If `API_TOKEN` is set, requests must include
+`Authorization: Bearer <token>`.
 
 Endpoint:
 
@@ -86,29 +95,36 @@ curl -X POST http://localhost:3000/message \
   -d '{"channelId":"123456789012345678","content":"hello","embed":{"title":"Offer","description":"50% off","color":3447003}}'
 ```
 
-## Configuration Notes
+## Deploy
 
-- If a specific alert channel is not set, the bot falls back to `ALERT_CHANNEL_ID`
-- `MIN_DISCOUNT_PERCENT` filters low-value discounts
-- Add role IDs in your config if you want pings (see `src/index.ts` for wiring)
+1. Set all required environment variables on your host.
+2. Build and run:
 
-## Development
+```bash
+npm run build
+npm start
+```
 
-- `bun run dev` for watch mode (if configured)
-- `bun run lint` for linting (if configured)
+3. Ensure the bot can reach Discord and your HTTP API port is exposed.
+4. Update the frontend `BACKEND_URL` to point at `https://your-host/message`.
 
 ## Project Structure
 
 - `src/index.ts` entry point
-- `src/base/CustomClient.ts` Discord client setup
-- `src/base/handlers/events/` event handlers
+- `src/bot/` Discord client setup and handlers
 - `src/api/` HTTP API server, routes, controllers, and services
 
 ## Troubleshooting
 
 - Bot is online but not posting: confirm channel IDs and permissions
 - No alerts: check the polling interval and discount threshold
+- 401 from API: confirm `API_TOKEN` and Authorization header
 
 ## License
 
 [LICENSE](LICENSE)
+
+## Related repos
+
+- https://github.com/AleixFerre/unity-sales-discord-bot
+- https://github.com/AleixFerre/unity-sales-discord-bot-frontend
