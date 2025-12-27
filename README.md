@@ -72,11 +72,10 @@ Endpoint:
 
 - `POST /message`
 
-Body:
+Body (no `channelId` required; messages are sent to all channels stored in the DB):
 
 ```json
 {
-  "channelId": "123456789012345678",
   "content": "hello",
   "embed": {
     "title": "Offer",
@@ -92,7 +91,7 @@ Example:
 curl -X POST http://localhost:3000/message \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_TOKEN" \
-  -d '{"channelId":"123456789012345678","content":"hello","embed":{"title":"Offer","description":"50% off","color":3447003}}'
+  -d '{"content":"hello","embed":{"title":"Offer","description":"50% off","color":3447003}}'
 ```
 
 ## Deploy
