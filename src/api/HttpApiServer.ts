@@ -1,3 +1,4 @@
+import cors from 'cors';
 import { Client } from 'discord.js';
 import express, { Request, Response } from 'express';
 import createMessageRouter from './routes/message.routes';
@@ -14,6 +15,13 @@ class HttpApiServer {
     const app = express();
 
     app.use(express.json());
+    app.use(
+      cors({
+        origin: process.env['ALLOWED_ORIGINS']?.split(','),
+        credentials: true,
+      }),
+    );
+
     app.use(createMessageRouter(this.client, this.options.apiToken));
     app.use((_req: Request, res: Response) => {
       this.sendJson(res, 404, { error: 'Not found' });
