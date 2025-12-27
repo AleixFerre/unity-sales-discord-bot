@@ -13,6 +13,7 @@ Discord bot that monitors Unity Asset Store promotions and posts alerts for:
 - Separate channels or role pings per alert type
 - Deduping to avoid repeat notifications
 - Simple config via environment variables
+- Optional HTTP API to send messages to a channel
 
 ## Requirements
 
@@ -49,6 +50,8 @@ Discord bot that monitors Unity Asset Store promotions and posts alerts for:
    DEFAULT_GUILD_ID="default_guild_id"
    OWNER_ID="owner_id"
    PREFIX="!"
+   API_PORT="3000"
+   API_TOKEN="change_me"
    ```
 
 4. Run the bot
@@ -61,6 +64,39 @@ Discord bot that monitors Unity Asset Store promotions and posts alerts for:
 - Classifies promotions into free, discount, coupon, and deal buckets
 - Sends a message embed to the configured channel(s)
 - Skips items already announced
+- Optional HTTP API exposes a POST endpoint to send messages or embeds
+
+## HTTP API
+
+The API starts when the bot is ready. Configure `API_PORT` (defaults to 3000).
+If `API_TOKEN` is set, requests must include `Authorization: Bearer <token>`.
+
+Endpoint:
+
+- `POST /message`
+
+Body:
+
+```json
+{
+  "channelId": "123456789012345678",
+  "content": "hello",
+  "embed": {
+    "title": "Offer",
+    "description": "50% off",
+    "color": 3447003
+  }
+}
+```
+
+Example:
+
+```bash
+curl -X POST http://localhost:3000/message \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $API_TOKEN" \
+  -d '{"channelId":"123456789012345678","content":"hello","embed":{"title":"Offer","description":"50% off","color":3447003}}'
+```
 
 ## Configuration Notes
 
@@ -78,6 +114,7 @@ Discord bot that monitors Unity Asset Store promotions and posts alerts for:
 - `src/index.ts` entry point
 - `src/base/CustomClient.ts` Discord client setup
 - `src/base/handlers/events/` event handlers
+- `src/api/` HTTP API server, routes, controllers, and services
 
 ## Troubleshooting
 
