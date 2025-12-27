@@ -11,8 +11,12 @@ class MessageService {
 
     await Promise.all(
       channels.map(async ({ channelid }) => {
-        const channel = await this.client.channels.fetch(channelid);
-        if (!channel || !channel.isTextBased() || !('send' in channel)) {
+        const channel = await this.fetchChannel(channelid);
+        if (!channel) {
+          return { ok: false, status: 400, error: 'Invalid channel' };
+        }
+
+        if (!channel.isTextBased() || !('send' in channel)) {
           return { ok: false, status: 400, error: 'Invalid channel' };
         }
 
@@ -26,6 +30,36 @@ class MessageService {
     );
 
     return { ok: true };
+  }
+
+  private async fetchChannel(channelid: string) {
+    try {
+      const channel = await this.client.channels.fetch(channelid);
+      if (!channel) {
+        await this.deleteChannel(channelid);
+        return null;
+      }
+      return channel;
+    } catch (error) {
+      if (this.isUnknownChannelError(error)) {
+        await this.deleteChannel(channelid);
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  private isUnknownChannelError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') return false;
+    return 'code' in error && (error as { code?: number }).code === 10003;
+  }
+
+  private async deleteChannel(channelid: string): Promise<void> {
+    try {
+      await prisma.channels.delete({ where: { channelid } });
+    } catch {
+      // Ignore missing rows or races with other deletions.
+    }
   }
 
   private buildMessage(payload: MessagePayload): { content?: string; embeds?: EmbedBuilder[] } | null {
