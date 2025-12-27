@@ -1,4 +1,4 @@
-import { Client, Collection } from 'discord.js';
+import { Client, Collection, GatewayIntentBits } from 'discord.js';
 import { Command } from './handlers/commands/interfaces/command.interface';
 import eventHandler from './handlers/event.handler';
 
@@ -15,5 +15,5 @@ class CustomClient extends Client {
 }
 
 export default new CustomClient({
-  intents: [],
+  intents: [GatewayIntentBits.Guilds],
 });
