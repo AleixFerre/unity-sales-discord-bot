@@ -1,7 +1,10 @@
-import { Client } from 'discord.js';
+import { Client, Collection } from 'discord.js';
+import { Command } from './handlers/commands/interfaces/command.interface';
 import eventHandler from './handlers/event.handler';
 
 class CustomClient extends Client {
+  commands: Collection<string, Command> = new Collection();
+
   public Init(): void {
     eventHandler.loadEvents();
 
