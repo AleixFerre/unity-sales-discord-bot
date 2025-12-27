@@ -111,4 +111,4 @@ curl -X POST http://localhost:3000/message \
 
 ## License
 
-[LICENSE]
+[LICENSE](LICENSE)
