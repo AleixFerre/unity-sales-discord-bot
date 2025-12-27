@@ -1,9 +1,10 @@
 import CustomClient from '../CustomClient';
+import CommandHandler from './command.handler';
 import PingCommand from './commands/ping.command';
 import ReadyEvent from './events/ready.event';
 
 class EventHandler {
-  private readonly events = [ReadyEvent];
+  private readonly events = [ReadyEvent, CommandHandler];
   private readonly commands = [PingCommand];
 
   public loadEvents(): void {

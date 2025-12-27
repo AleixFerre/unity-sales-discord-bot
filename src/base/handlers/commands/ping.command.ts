@@ -11,10 +11,7 @@ class PingCommand implements Command {
   readonly dm_permission = false;
 
   execute(interaction: ChatInputCommandInteraction): void {
-    interaction.reply({
-      content: 'Pong!',
-      ephemeral: true,
-    });
+    interaction.reply({ content: 'Pong!', flags: 'Ephemeral' });
   }
   autoComplete?: (interaction: AutocompleteInteraction) => void;
 }

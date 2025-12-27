@@ -9,6 +9,6 @@ export interface Command {
   readonly default_member_permissions: bigint;
   readonly dm_permission: boolean;
 
-  readonly execute: (interaction: ChatInputCommandInteraction) => void;
-  readonly autoComplete?: (interaction: AutocompleteInteraction) => void;
+  readonly execute: (interaction: ChatInputCommandInteraction) => Promise<void> | void;
+  readonly autoComplete?: (interaction: AutocompleteInteraction) => Promise<void> | void;
 }
