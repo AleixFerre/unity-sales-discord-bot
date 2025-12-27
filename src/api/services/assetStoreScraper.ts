@@ -8,7 +8,7 @@ export const scrapeAssetStore = async (url: string): Promise<AssetStoreData | nu
 
 const fetchAssetStoreHtml = async (url: string): Promise<string> => {
   const browser = await puppeteer.launch({
-    headless: 'new',
+    headless: 'shell',
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
   try {
