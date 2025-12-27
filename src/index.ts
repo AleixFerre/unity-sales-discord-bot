@@ -3,7 +3,7 @@ import 'dotenv/config';
 import HttpApiServer from './api/HttpApiServer';
 import client from './bot/CustomClient';
 
-const PORT = Number(process.env['API_PORT'] || 3000);
+const PORT = Number(process.env['PORT'] || process.env['API_PORT'] || 3000);
 const API_TOKEN = process.env['API_TOKEN']!;
 
 const apiServer = new HttpApiServer(client, { port: PORT, apiToken: API_TOKEN });
