@@ -10,7 +10,6 @@ export type EmbedPayload = {
 };
 
 export type MessagePayload = {
-  channelId?: string;
   content?: string;
   embed?: EmbedPayload;
 };

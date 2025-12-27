@@ -16,6 +16,7 @@ function getPrismaClient() {
   }
   const adapter = new PrismaPg(pool);
   client = new PrismaClient({ adapter });
+  return client;
 }
 
 export default generateNewPrismaClient();

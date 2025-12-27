@@ -1,26 +1,28 @@
+import { channels } from '@prisma/client';
 import { Client, EmbedBuilder } from 'discord.js';
+import prisma from '../../db/prisma-client';
 import { EmbedPayload, MessagePayload, ServiceResult } from './models/message.model';
 
 class MessageService {
   constructor(private readonly client: Client) {}
 
   public async sendMessage(payload: MessagePayload): Promise<ServiceResult> {
-    const channelId = payload?.channelId;
-    if (!channelId) {
-      return { ok: false, status: 400, error: 'Missing channelId' };
+    const channels: channels[] = await prisma.channels.findMany();
+
+    for (const { channelid } of channels) {
+      const channel = await this.client.channels.fetch(channelid);
+      if (!channel || !channel.isTextBased() || !('send' in channel)) {
+        return { ok: false, status: 400, error: 'Invalid channel' };
+      }
+
+      const message = this.buildMessage(payload);
+      if (!message) {
+        return { ok: false, status: 400, error: 'Missing content or embed' };
+      }
+
+      await channel.send(message);
     }
 
-    const channel = await this.client.channels.fetch(channelId);
-    if (!channel || !channel.isTextBased() || !('send' in channel)) {
-      return { ok: false, status: 400, error: 'Invalid channel' };
-    }
-
-    const message = this.buildMessage(payload);
-    if (!message) {
-      return { ok: false, status: 400, error: 'Missing content or embed' };
-    }
-
-    await channel.send(message);
     return { ok: true };
   }
 
