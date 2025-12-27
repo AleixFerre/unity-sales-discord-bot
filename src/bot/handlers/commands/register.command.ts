@@ -1,4 +1,5 @@
 import { AutocompleteInteraction, ChatInputCommandInteraction, PermissionsBitField } from 'discord.js';
+import prismaClient from '../../../db/prisma-client';
 import { Category } from './interfaces/category.interface';
 import { Command } from './interfaces/command.interface';
 
@@ -11,7 +12,35 @@ class RegisterCommand implements Command {
   readonly dm_permission = false;
 
   execute(interaction: ChatInputCommandInteraction): void {
-    interaction.reply({ content: 'Channel registered!', flags: 'Ephemeral' });
+    prismaClient.channels
+      .findUnique({
+        where: {
+          channelid: interaction.channelId!,
+        },
+      })
+      .then(async (channel) => {
+        if (channel) {
+          await prismaClient.channels.delete({
+            where: {
+              channelid: interaction.channelId!,
+            },
+          });
+          await interaction.reply({
+            content: 'Channel <#' + channel.channelid + '> unregistered as the alert channel!',
+            flags: 'Ephemeral',
+          });
+        } else {
+          await prismaClient.channels.create({
+            data: {
+              channelid: interaction.channelId!,
+            },
+          });
+          await interaction.reply({
+            content: 'Channel <#' + interaction.channelId + '> registered as the alert channel!',
+            flags: 'Ephemeral',
+          });
+        }
+      });
   }
   autoComplete?: (interaction: AutocompleteInteraction) => void;
 }

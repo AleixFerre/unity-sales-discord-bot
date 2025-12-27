@@ -6,22 +6,24 @@ import { EmbedPayload, MessagePayload, ServiceResult } from './models/message.mo
 class MessageService {
   constructor(private readonly client: Client) {}
 
-  public async sendMessage(payload: MessagePayload): Promise<ServiceResult> {
+  public async sendMessages(payload: MessagePayload): Promise<ServiceResult> {
     const channels: channels[] = await prisma.channels.findMany();
 
-    for (const { channelid } of channels) {
-      const channel = await this.client.channels.fetch(channelid);
-      if (!channel || !channel.isTextBased() || !('send' in channel)) {
-        return { ok: false, status: 400, error: 'Invalid channel' };
-      }
+    await Promise.all(
+      channels.map(async ({ channelid }) => {
+        const channel = await this.client.channels.fetch(channelid);
+        if (!channel || !channel.isTextBased() || !('send' in channel)) {
+          return { ok: false, status: 400, error: 'Invalid channel' };
+        }
 
-      const message = this.buildMessage(payload);
-      if (!message) {
-        return { ok: false, status: 400, error: 'Missing content or embed' };
-      }
+        const message = this.buildMessage(payload);
+        if (!message) {
+          return { ok: false, status: 400, error: 'Missing content or embed' };
+        }
 
-      await channel.send(message);
-    }
+        return await channel.send(message);
+      }),
+    );
 
     return { ok: true };
   }

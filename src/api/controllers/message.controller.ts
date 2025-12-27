@@ -15,7 +15,7 @@ class MessageController {
     }
 
     try {
-      const result = await this.service.sendMessage(req.body as MessagePayload);
+      const result = await this.service.sendMessages(req.body as MessagePayload);
       if (!result.ok) {
         res.status(result.status).json({ error: result.error });
         return;
