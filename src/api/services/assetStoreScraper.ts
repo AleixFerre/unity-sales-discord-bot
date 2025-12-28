@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer';
+import puppeteer, { Page } from 'puppeteer';
 import { AssetStoreData, extractAssetStoreData } from '../utils/assetStoreParser';
 
 export const scrapeAssetStore = async (url: string): Promise<AssetStoreData | null> => {
@@ -13,10 +13,59 @@ const fetchAssetStoreHtml = async (url: string): Promise<string> => {
   });
   try {
     const page = await browser.newPage();
-    await page.setUserAgent('UnitySalesBot/1.0');
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
-    return await page.content();
+    await page.setUserAgent(
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
+    );
+    await page.setExtraHTTPHeaders({ 'accept-language': 'en-US,en;q=0.9' });
+    const html = await fetchWithRetries(page, url);
+    return html;
   } finally {
     await browser.close();
   }
 };
+
+const fetchWithRetries = async (page: Page, url: string): Promise<string> => {
+  const attempts = 3;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+    const ready = await waitForAssetContent(page, 45000);
+    const title = await page.title().catch(() => '');
+    const isChallenge = title.toLowerCase().includes('just a moment');
+    if (ready && !isChallenge) {
+      return await page.content();
+    }
+    if (attempt < attempts) {
+      await delay(2500);
+      await page.reload({ waitUntil: 'networkidle2', timeout: 30000 });
+    }
+  }
+  return await page.content();
+};
+
+const waitForAssetContent = async (page: Page, timeoutMs: number): Promise<boolean> => {
+  try {
+    await page.waitForFunction(
+      () => {
+        const doc = (globalThis as { document?: { title?: string; documentElement?: { innerHTML?: string } } })
+          .document;
+        const title = doc?.title || '';
+        if (title.toLowerCase().includes('just a moment')) {
+          return false;
+        }
+        const html = doc?.documentElement?.innerHTML || '';
+        return (
+          html.includes('application/ld+json') ||
+          html.includes('property="og:title"') ||
+          html.includes('name="title"')
+        );
+      },
+      { timeout: timeoutMs, polling: 500 }
+    );
+    return true;
+  } catch {
+    // Best effort: fall back to whatever content is available.
+    return false;
+  }
+};
+
+const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
