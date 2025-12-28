@@ -1,6 +1,7 @@
 export type AssetStoreData = {
   title?: string;
   imageUrl?: string;
+  price?: string;
 };
 
 export const extractAssetStoreData = (html: string): AssetStoreData | null => {
@@ -15,6 +16,7 @@ export const extractAssetStoreData = (html: string): AssetStoreData | null => {
   const imageUrl = normalizeImageUrl(
     readImageUrl(product) || readMetaContent(html, 'property="og:image"')
   );
+  const offerPrice = readOfferPrice(product);
 
   const title = buildTitle(name, publisher);
   const result: AssetStoreData = {};
@@ -24,7 +26,9 @@ export const extractAssetStoreData = (html: string): AssetStoreData | null => {
   if (imageUrl) {
     result.imageUrl = imageUrl;
   }
-
+  if (offerPrice) {
+    result.price = offerPrice;
+  }
   return Object.keys(result).length ? result : null;
 };
 
@@ -110,6 +114,47 @@ const readImageUrl = (product: Record<string, unknown> | null): string | null =>
   }
   if (Array.isArray(image) && typeof image[0] === 'string') {
     return image[0];
+  }
+  return null;
+};
+
+const readOfferPrice = (product: Record<string, unknown> | null): string | null => {
+  if (!product) {
+    return null;
+  }
+  const offers = product['offers'];
+  const offerList = Array.isArray(offers) ? offers : offers ? [offers] : [];
+  for (const offer of offerList) {
+    if (!offer || typeof offer !== 'object') {
+      continue;
+    }
+    const typed = offer as Record<string, unknown>;
+    const price = readOfferPriceValue(typed);
+    if (price) {
+      return price;
+    }
+  }
+  return null;
+};
+
+const readOfferPriceValue = (offer: Record<string, unknown>): string | null => {
+  const direct = offer['price'];
+  if (typeof direct === 'string') {
+    return direct.trim() || null;
+  }
+  if (typeof direct === 'number') {
+    return direct.toString();
+  }
+  const spec = offer['priceSpecification'];
+  if (spec && typeof spec === 'object') {
+    const specTyped = spec as Record<string, unknown>;
+    const specPrice = specTyped['price'];
+    if (typeof specPrice === 'string') {
+      return specPrice.trim() || null;
+    }
+    if (typeof specPrice === 'number') {
+      return specPrice.toString();
+    }
   }
   return null;
 };
