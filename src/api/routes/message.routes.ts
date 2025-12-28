@@ -24,8 +24,8 @@ const createMessageRouter = (client: Client, apiToken?: string): Router => {
       res.status(400).json({ error: 'Missing url parameter.' });
       return;
     }
-    if (!isUnityAssetStoreUrl(url)) {
-      res.status(400).json({ error: 'URL must be a Unity Asset Store package.' });
+    if (!isSupportedAssetUrl(url)) {
+      res.status(400).json({ error: 'URL must be a Unity Asset Store or Fab listing.' });
       return;
     }
 
@@ -41,10 +41,16 @@ const createMessageRouter = (client: Client, apiToken?: string): Router => {
   return router;
 };
 
-const isUnityAssetStoreUrl = (rawUrl: string): boolean => {
+const isSupportedAssetUrl = (rawUrl: string): boolean => {
   try {
     const parsed = new URL(rawUrl);
-    return parsed.hostname === 'assetstore.unity.com' && parsed.pathname.startsWith('/packages/');
+    if (parsed.hostname === 'assetstore.unity.com') {
+      return parsed.pathname.startsWith('/packages/');
+    }
+    if (parsed.hostname === 'www.fab.com' || parsed.hostname === 'fab.com') {
+      return parsed.pathname.startsWith('/listings/');
+    }
+    return false;
   } catch {
     return false;
   }

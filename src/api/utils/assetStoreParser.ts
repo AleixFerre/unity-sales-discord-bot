@@ -1,18 +1,17 @@
 export type AssetStoreData = {
   title?: string;
-  description?: string;
   imageUrl?: string;
 };
 
 export const extractAssetStoreData = (html: string): AssetStoreData | null => {
   const product = findProductJsonLd(html);
-  const name = readStringProperty(product, 'name');
-  const publisher = readBrandName(product);
-  const description = decodeHtml(
-    readStringProperty(product, 'description') ||
-      readMetaContent(html, 'property="og:description"') ||
-      readMetaContent(html, 'name="description"')
+  const name = decodeHtml(
+    readStringProperty(product, 'name') ||
+      readMetaContent(html, 'property="og:title"') ||
+      readMetaContent(html, 'name="title"') ||
+      readTitleTag(html)
   );
+  const publisher = readBrandName(product);
   const imageUrl = normalizeImageUrl(
     readImageUrl(product) || readMetaContent(html, 'property="og:image"')
   );
@@ -21,9 +20,6 @@ export const extractAssetStoreData = (html: string): AssetStoreData | null => {
   const result: AssetStoreData = {};
   if (title) {
     result.title = title;
-  }
-  if (description) {
-    result.description = description;
   }
   if (imageUrl) {
     result.imageUrl = imageUrl;
@@ -119,16 +115,16 @@ const readImageUrl = (product: Record<string, unknown> | null): string | null =>
 };
 
 const readMetaContent = (html: string, attributeMatch: string): string | null => {
-  const regex = new RegExp(`<meta[^>]*${attributeMatch}[^>]*content="([^"]+)"`, 'i');
+  const regex = new RegExp(`<meta[^>]*${attributeMatch}[^>]*content=(["'])(.*?)\\1`, 'i');
   const match = html.match(regex);
-  return match?.[1]?.trim() || null;
+  return match?.[2]?.trim() || null;
 };
 
 const buildTitle = (name: string | null, publisher: string | null): string | null => {
   if (!name) {
     return null;
   }
-  const baseName = humanizeAssetName(name);
+  const baseName = humanizeAssetName(stripTitleSuffix(name));
   if (baseName && publisher) {
     return `${baseName} by ${publisher}`;
   }
@@ -137,6 +133,15 @@ const buildTitle = (name: string | null, publisher: string | null): string | nul
 
 const humanizeAssetName = (name: string): string => {
   return name.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/\s+/g, ' ').trim();
+};
+
+const stripTitleSuffix = (name: string): string => {
+  return name.replace(/\s*(\||-)\s*Fab\s*$/i, '').trim();
+};
+
+const readTitleTag = (html: string): string | null => {
+  const match = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+  return match?.[1]?.trim() || null;
 };
 
 const normalizeImageUrl = (url: string | null): string | null => {
