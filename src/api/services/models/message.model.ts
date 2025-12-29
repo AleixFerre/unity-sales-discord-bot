@@ -1,4 +1,7 @@
+export type MessageType = 'unity' | 'fab' | 'custom';
+
 export type EmbedPayload = {
+  messageType?: MessageType;
   title?: string;
   color?: number;
   url?: string;
