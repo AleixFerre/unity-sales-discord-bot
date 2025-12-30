@@ -13,7 +13,7 @@ export type EmbedPayload = {
 
 export type MessagePayload = {
   content?: string;
-  embed?: EmbedPayload;
+  embeds?: EmbedPayload[];
 };
 
 export type ServiceResult = { ok: true } | { ok: false; status: number; error: string };

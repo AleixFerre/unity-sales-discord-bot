@@ -77,11 +77,13 @@ Body (no `channelId` required; messages are sent to all channels stored in the D
 ```json
 {
   "content": "hello",
-  "embed": {
-    "title": "Offer",
-    "description": "50% off",
-    "color": 3447003
-  }
+  "embeds": [
+    {
+      "title": "Offer",
+      "description": "50% off",
+      "color": 3447003
+    }
+  ]
 }
 ```
 
@@ -91,7 +93,7 @@ Example:
 curl -X POST http://localhost:3000/message \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_TOKEN" \
-  -d '{"content":"hello","embed":{"title":"Offer","description":"50% off","color":3447003}}'
+  -d '{"content":"hello","embeds":[{"title":"Offer","description":"50% off","color":3447003}]}'
 ```
 
 ## Deploy
