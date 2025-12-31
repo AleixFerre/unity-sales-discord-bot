@@ -65,11 +65,9 @@ class MessageService {
   private buildMessage(payload: MessagePayload): { content?: string; embeds?: EmbedBuilder[] } | null {
     const content = typeof payload.content === 'string' ? payload.content : undefined;
     const embeds: EmbedBuilder[] = [];
-    if (payload.embeds?.length) {
-      payload.embeds.forEach((embed) => {
-        embeds.push(this.buildEmbed(embed));
-      });
-    }
+    payload.embeds?.forEach((embed) => {
+      embeds.push(this.buildEmbed(embed));
+    });
 
     if (!content && embeds.length === 0) return null;
 
