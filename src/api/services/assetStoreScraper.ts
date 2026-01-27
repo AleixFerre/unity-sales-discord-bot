@@ -25,19 +25,12 @@ const fetchAssetStoreHtml = async (url: string): Promise<string> => {
 };
 
 const fetchWithRetries = async (page: Page, url: string): Promise<string> => {
-  const attempts = 3;
-  for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
-    const ready = await waitForAssetContent(page, 45000);
-    const title = await page.title().catch(() => '');
-    const isChallenge = title.toLowerCase().includes('just a moment');
-    if (ready && !isChallenge) {
-      return await page.content();
-    }
-    if (attempt < attempts) {
-      await delay(2500);
-      await page.reload({ waitUntil: 'networkidle2', timeout: 30000 });
-    }
+  await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+  const ready = await waitForAssetContent(page, 45000);
+  const title = await page.title().catch(() => '');
+  const isChallenge = title.toLowerCase().includes('just a moment');
+  if (ready && !isChallenge) {
+    return await page.content();
   }
   return await page.content();
 };
@@ -67,5 +60,3 @@ const waitForAssetContent = async (page: Page, timeoutMs: number): Promise<boole
     return false;
   }
 };
-
-const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
