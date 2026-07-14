@@ -14,8 +14,6 @@ const createMessageRouter = (client: Client, apiToken?: string): Router => {
     if (!apiToken) {
       return true;
     }
-    console.log(req.headers.authorization,apiToken);
-    
     return req.headers.authorization === `Bearer ${apiToken}`;
   };
 

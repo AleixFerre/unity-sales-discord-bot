@@ -23,13 +23,19 @@ const fetchFabFreeBlade = async (): Promise<unknown> => {
     // Load the page first so the request to the blade endpoint carries any
     // Cloudflare clearance cookies obtained while rendering.
     await page.goto(FAB_FREE_PAGE_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    const raw = await page.evaluate(async (url) => {
-      const response = await fetch(url, {
-        headers: { accept: 'application/json' },
-        credentials: 'include',
-      });
-      return response.text();
-    }, FAB_FREE_BLADE_URL);
+    // NOTE: this callback runs inside the browser, so it must not use
+    // async/await. With tsconfig target es2016, TypeScript downlevels
+    // async/await into an `__awaiter` helper that only exists in the Node
+    // bundle, not in the page context — using a promise chain keeps the
+    // serialized function self-contained.
+    const raw = await page.evaluate(
+      (url) =>
+        fetch(url, {
+          headers: { accept: 'application/json' },
+          credentials: 'include',
+        }).then((response) => response.text()),
+      FAB_FREE_BLADE_URL
+    );
     return JSON.parse(raw);
   } finally {
     await browser.close();
