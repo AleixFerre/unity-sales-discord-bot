@@ -1,6 +1,7 @@
 import cors from 'cors';
 import { Client } from 'discord.js';
 import express, { Request, Response } from 'express';
+import morgan from 'morgan';
 import createMessageRouter from './routes/message.routes';
 
 type HttpApiOptions = {
@@ -14,6 +15,9 @@ class HttpApiServer {
   public start(): void {
     const app = express();
 
+    // Log every incoming request. Use the concise 'dev' format in development
+    // and the full Apache 'combined' format elsewhere for complete traffic records.
+    app.use(morgan(process.env['NODE_ENV'] === 'production' ? 'combined' : 'dev'));
     app.use(express.json());
     app.use(
       cors({
