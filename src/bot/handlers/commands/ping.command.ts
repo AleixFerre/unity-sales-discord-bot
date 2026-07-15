@@ -1,11 +1,9 @@
-import { AutocompleteInteraction, ChatInputCommandInteraction, PermissionsBitField } from 'discord.js';
-import { Category } from './interfaces/category.interface';
+import { ChatInputCommandInteraction, PermissionsBitField } from 'discord.js';
 import { Command } from './interfaces/command.interface';
 
 class PingCommand implements Command {
   readonly name: string = 'ping';
   readonly description: string = 'This returns pong!';
-  readonly category = Category.Utilities;
   readonly options = [];
   readonly default_member_permissions = PermissionsBitField.Flags.UseApplicationCommands;
   readonly dm_permission = false;
@@ -13,7 +11,6 @@ class PingCommand implements Command {
   execute(interaction: ChatInputCommandInteraction): void {
     interaction.reply({ content: 'Pong!', flags: 'Ephemeral' });
   }
-  autoComplete?: (interaction: AutocompleteInteraction) => void;
 }
 
 export default new PingCommand();

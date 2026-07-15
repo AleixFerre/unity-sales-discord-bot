@@ -3,17 +3,9 @@ import MessageService from '../services/message.service';
 import { MessagePayload } from '../services/models/message.model';
 
 class MessageController {
-  constructor(private readonly service: MessageService, private readonly apiToken?: string) {}
+  constructor(private readonly service: MessageService) {}
 
   public readonly handleSendMessage = async (req: Request, res: Response): Promise<void> => {
-    if (this.apiToken) {
-      const auth = req.headers.authorization;
-      if (auth !== `Bearer ${this.apiToken}`) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
-      }
-    }
-
     try {
       const result = await this.service.sendMessages(req.body as MessagePayload);
       if (!result.ok) {

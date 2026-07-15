@@ -1,15 +1,12 @@
 # Unity Sales Discord Bot (Backend)
+
 _Important: this project is meant to run alongside the frontend. Grab both repos._
 _Frontend repo: https://github.com/AleixFerre/unity-sales-discord-bot-frontend_
 
-Discord bot that monitors Unity Asset Store promotions and posts alerts for:
-
-- free assets
-- strong discounts
-- coupon codes
-- good-value bundles and limited-time deals
-
-Includes an optional HTTP API so the frontend can send custom embeds to a channel.
+Discord bot + HTTP API for posting game-dev promo embeds (Unity Asset Store sales,
+Fab limited-time-free assets) to registered Discord channels. The frontend composes
+the embeds; this backend scrapes store data on demand and relays the finished
+message to every channel registered with `/register`.
 
 ## Requirements
 
@@ -20,7 +17,7 @@ Includes an optional HTTP API so the frontend can send custom embeds to a channe
 ## Install
 
 ```bash
-cd unity-sales-backend
+cd unity-sales-discord-bot
 bun install
 ```
 
@@ -42,11 +39,10 @@ Key variables:
 
 - `TOKEN`: Discord bot token
 - `CLIENT_ID`: Discord application client ID
-- `OWNER_ID`: Discord user ID that owns/admins the bot
 - `API_PORT` or `PORT`: HTTP API port (default 3000)
 - `API_TOKEN`: Bearer token required by the HTTP API
 - `ALLOWED_ORIGINS`: comma-separated CORS origins
-- `DATABASE_URL`: Postgres connection string (required if database features are enabled)
+- `DATABASE_URL`: Postgres connection string (required)
 
 ## Run locally
 
@@ -63,29 +59,49 @@ npm run build
 npm start
 ```
 
+## Slash commands
+
+- `/register` (admin): toggles the current channel in the notification list
+- `/ping`: replies "Pong!"
+
 ## HTTP API
 
 The API listens on `API_PORT`/`PORT`. If `API_TOKEN` is set, requests must include
 `Authorization: Bearer <token>`.
 
-Endpoint:
+Endpoints:
 
-- `POST /message`
-
-Body (no `channelId` required; messages are sent to all channels stored in the DB):
+- `POST /message` — sends the embeds to every registered channel (no `channelId`
+  required; messages go to all channels stored in the DB):
 
 ```json
 {
-  "content": "hello",
   "embeds": [
     {
       "title": "Offer",
-      "description": "50% off",
-      "color": 3447003
+      "color": 3447003,
+      "url": "https://assetstore.unity.com/packages/...",
+      "fields": [{ "name": "Preu", "value": "~~€19.99~~ GRATIS", "inline": true }],
+      "footer": { "text": "GameDev Sales Bot" },
+      "images": [{ "url": "https://example.com/banner.png" }],
+      "thumbnail": { "url": "https://example.com/thumb.png" }
     }
   ]
 }
 ```
+
+An embed may carry up to 4 `images`; when it also has a `url`, the extra images
+are sent as additional embeds sharing that URL, which Discord renders as a
+single image gallery.
+
+- `GET /fab/free` — scrapes Fab's limited-time-free blade and returns
+  `{ "items": [{ "title", "imageUrl", "price", "freeUntil", "url" }] }`.
+- `GET /assetstore/scrape?url=<listing>` — scrapes a single Unity Asset Store
+  (`/packages/...`) or Fab (`/listings/...`) listing and returns
+  `{ "title", "imageUrl", "price" }`.
+- `GET /assetstore/list?url=<list>` — scrapes a Unity Asset Store list page
+  (`/lists/...`) and returns `{ "title", "imageUrls": [] }` with the first
+  three item images.
 
 Example:
 
@@ -93,7 +109,7 @@ Example:
 curl -X POST http://localhost:3000/message \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_TOKEN" \
-  -d '{"content":"hello","embeds":[{"title":"Offer","description":"50% off","color":3447003}]}'
+  -d '{"embeds":[{"title":"Offer","color":3447003}]}'
 ```
 
 ## Deploy
@@ -107,7 +123,7 @@ npm start
 ```
 
 3. Ensure the bot can reach Discord and your HTTP API port is exposed.
-4. Update the frontend `BACKEND_URL` to point at `https://your-host/message`.
+4. Update the frontend `backendUrl` (in its `src/app/config.json`) to point at `https://your-host`.
 
 ## Project Structure
 
@@ -117,9 +133,9 @@ npm start
 
 ## Troubleshooting
 
-- Bot is online but not posting: confirm channel IDs and permissions
-- No alerts: check the polling interval and discount threshold
+- Bot is online but not posting: run `/register` in the target channel and confirm the bot's permissions
 - 401 from API: confirm `API_TOKEN` and Authorization header
+- 502 from `POST /message`: no registered channel could be reached — check the `channels` table and bot access
 
 ## License
 
