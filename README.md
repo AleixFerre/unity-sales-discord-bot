@@ -60,14 +60,19 @@ npm start
 ```
 
 The build also downloads the [curl-impersonate](https://github.com/lexiforest/curl-impersonate)
-CLI into `bin/curl-impersonate/` (Linux x86_64 binary). The `/fab/free` endpoint requires it:
-Fab sits behind Cloudflare TLS-fingerprint checks that plain HTTP clients cannot pass, so the
-scraper shells out to curl-impersonate for a Chrome-fingerprinted request.
+CLI into `bin/curl-impersonate/` (Linux x86_64 binary). The `/fab/free` and `/assetstore/list`
+endpoints require it: Fab sits behind Cloudflare TLS-fingerprint checks that plain HTTP clients
+cannot pass, so both scrapers shell out to curl-impersonate for a browser-fingerprinted request
+(several fingerprints are tried until one returns a usable body).
 
 On Windows dev machines the same binary is used through WSL — run
 `bash scripts/install-curl-impersonate.sh` once from the package root (it delegates the
-download to WSL), and the scraper automatically invokes it via `wsl`. Without WSL,
-`/fab/free` returns 502 with a clear error; the rest of the bot works normally.
+download to WSL), and the scrapers automatically invoke it via `wsl`. Without WSL, those two
+endpoints return 502 with a clear error; the rest of the bot works normally.
+
+`/assetstore/scrape` is the one endpoint still driven by a headless browser (Puppeteer):
+single `/packages/` and `/listings/` pages need the client-side render to expose their data,
+while list pages are server-rendered and parse straight from the fetched HTML.
 
 ## Slash commands
 

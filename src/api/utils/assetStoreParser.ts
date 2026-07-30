@@ -1,3 +1,10 @@
+import {
+  decodeHtmlEntities,
+  readMetaContent,
+  readTitleTag,
+  resolveProtocolRelativeUrl,
+} from './html';
+
 export type AssetStoreData = {
   title?: string;
   imageUrl?: string;
@@ -6,14 +13,14 @@ export type AssetStoreData = {
 
 export const extractAssetStoreData = (html: string): AssetStoreData | null => {
   const product = findProductJsonLd(html);
-  const name = decodeHtml(
+  const name = decodeHtmlEntities(
     readStringProperty(product, 'name') ||
       readMetaContent(html, 'property="og:title"') ||
       readMetaContent(html, 'name="title"') ||
       readTitleTag(html)
   );
   const publisher = readBrandName(product);
-  const imageUrl = normalizeImageUrl(
+  const imageUrl = resolveProtocolRelativeUrl(
     readImageUrl(product) || readMetaContent(html, 'property="og:image"')
   );
   const offerPrice = readOfferPrice(product);
@@ -159,13 +166,7 @@ const readOfferPriceValue = (offer: Record<string, unknown>): string | null => {
   return null;
 };
 
-const readMetaContent = (html: string, attributeMatch: string): string | null => {
-  const regex = new RegExp(`<meta[^>]*${attributeMatch}[^>]*content=(["'])(.*?)\\1`, 'i');
-  const match = html.match(regex);
-  return match?.[2]?.trim() || null;
-};
-
-const buildTitle = (name: string | null, publisher: string | null): string | null => {
+const buildTitle =(name: string | null, publisher: string | null): string | null => {
   if (!name) {
     return null;
   }
@@ -184,29 +185,3 @@ const stripTitleSuffix = (name: string): string => {
   return name.replace(/\s*(\||-)\s*Fab\s*$/i, '').trim();
 };
 
-const readTitleTag = (html: string): string | null => {
-  const match = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-  return match?.[1]?.trim() || null;
-};
-
-const normalizeImageUrl = (url: string | null): string | null => {
-  if (!url) {
-    return null;
-  }
-  if (url.startsWith('//')) {
-    return `https:${url}`;
-  }
-  return url;
-};
-
-const decodeHtml = (value: string | null): string | null => {
-  if (!value) {
-    return null;
-  }
-  return value
-    .replace(/&amp;/g, '&')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>');
-};
