@@ -6,7 +6,7 @@
   "author": "Aleix Ferré",
   "license": "MIT",
   "scripts": {
-    "build": "rm -rf dist && tsc --build",
+    "build": "rm -rf dist && tsc --build && bash scripts/install-curl-impersonate.sh",
     "start": "node dist/index.js",
     "dev": "bun run --watch src/index.ts",
     "prisma": "prisma db pull && prisma generate"

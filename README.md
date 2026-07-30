@@ -59,6 +59,16 @@ npm run build
 npm start
 ```
 
+The build also downloads the [curl-impersonate](https://github.com/lexiforest/curl-impersonate)
+CLI into `bin/curl-impersonate/` (Linux x86_64 binary). The `/fab/free` endpoint requires it:
+Fab sits behind Cloudflare TLS-fingerprint checks that plain HTTP clients cannot pass, so the
+scraper shells out to curl-impersonate for a Chrome-fingerprinted request.
+
+On Windows dev machines the same binary is used through WSL — run
+`bash scripts/install-curl-impersonate.sh` once from the package root (it delegates the
+download to WSL), and the scraper automatically invokes it via `wsl`. Without WSL,
+`/fab/free` returns 502 with a clear error; the rest of the bot works normally.
+
 ## Slash commands
 
 - `/register` (admin): toggles the current channel in the notification list
