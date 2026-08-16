@@ -1,5 +1,6 @@
 export type EmbedPayload = {
   title?: string;
+  description?: string;
   color?: number;
   url?: string;
   fields?: Array<{ name: string; value: string; inline?: boolean }>;

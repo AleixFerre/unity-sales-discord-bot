@@ -162,6 +162,7 @@ class MessageService {
   private buildBaseEmbed(embed: EmbedPayload): EmbedBuilder {
     const builder = new EmbedBuilder();
     if (embed.title) builder.setTitle(embed.title);
+    if (embed.description) builder.setDescription(embed.description);
     if (typeof embed.color === 'number') builder.setColor(embed.color);
     if (embed.url) builder.setURL(embed.url);
     if (embed.fields?.length) builder.addFields(embed.fields);
