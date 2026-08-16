@@ -7,6 +7,7 @@ import {
 
 export type AssetStoreListData = {
   title?: string;
+  author?: string;
   imageUrls: string[];
 };
 
@@ -20,8 +21,16 @@ export const extractAssetStoreListData = (
   limit: number = LIST_IMAGE_LIMIT
 ): AssetStoreListData => {
   const title = readListTitle(html);
+  const author = readListAuthor(html);
   const imageUrls = readItemImageUrls(html, limit);
-  return title ? { title, imageUrls } : { imageUrls };
+  const data: AssetStoreListData = { imageUrls };
+  if (title) {
+    data.title = title;
+  }
+  if (author) {
+    data.author = author;
+  }
+  return data;
 };
 
 const readListTitle = (html: string): string | null => {
@@ -38,9 +47,35 @@ const readHeadingText = (html: string): string | null => {
     return null;
   }
   // Cards render through React SSR, so the heading holds comment nodes and spans.
-  const text = match[1].replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-  return text || null;
+  return stripTags(match[1]) || null;
 };
+
+// The list owner is only named in the header breadcrumb — Home › author › list
+// title — so the last link before the heading is the account the list belongs
+// to. Anything after the heading is an item card.
+const readListAuthor = (html: string): string | null => {
+  const headerStart = html.search(/<main\b/i);
+  const headingStart = html.search(/<h1\b/i);
+  if (headerStart < 0 || headingStart <= headerStart) {
+    return null;
+  }
+  const links = [
+    ...html.slice(headerStart, headingStart).matchAll(/<a[^>]+href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/gi),
+  ];
+  for (const link of links.reverse()) {
+    if (link[1] === '/') {
+      continue;
+    }
+    const name = stripTags(link[2] ?? '');
+    if (name) {
+      return decodeHtmlEntities(name);
+    }
+  }
+  return null;
+};
+
+const stripTags = (html: string): string =>
+  html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
 
 const stripStoreSuffix = (value: string): string =>
   value.replace(/\s*[|-]\s*(?:Unity\s*)?Asset Store\s*$/i, '').trim();
