@@ -110,3 +110,6 @@ dist
 
 # curl-impersonate binary downloaded at build time
 /bin/curl-impersonate
+
+# Collages generated when scraping Asset Store lists
+/storage

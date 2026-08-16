@@ -3,6 +3,7 @@ import { Client } from 'discord.js';
 import express, { Request, Response } from 'express';
 import morgan from 'morgan';
 import createMessageRouter from './routes/message.routes';
+import { COLLAGE_DIR, COLLAGE_ROUTE } from './utils/collageStore';
 
 type HttpApiOptions = {
   port: number;
@@ -15,6 +16,11 @@ class HttpApiServer {
   public start(): void {
     const app = express();
 
+    // Hosts like Railway terminate TLS at their edge and forward over plain HTTP.
+    // Without this, req.protocol reports 'http' and the collage URLs handed to the
+    // composer are blocked as mixed content by the HTTPS frontend.
+    app.set('trust proxy', 1);
+
     // Log every incoming request. Use the concise 'dev' format in development
     // and the full Apache 'combined' format elsewhere for complete traffic records.
     app.use(morgan(process.env['NODE_ENV'] === 'production' ? 'combined' : 'dev'));
@@ -25,6 +31,10 @@ class HttpApiServer {
         credentials: true,
       }),
     );
+
+    // Unauthenticated on purpose: the composer previews the collage in a plain <img>,
+    // which cannot carry the bearer token. The file names are random UUIDs.
+    app.use(COLLAGE_ROUTE, express.static(COLLAGE_DIR, { maxAge: '1h' }));
 
     app.use(createMessageRouter(this.client, this.options.apiToken));
     app.use((_req: Request, res: Response) => {

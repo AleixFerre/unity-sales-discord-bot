@@ -59,7 +59,7 @@ const createMessageRouter = (client: Client, apiToken?: string): Router => {
     }
 
     try {
-      const data = await scrapeAssetStoreList(url);
+      const data = await scrapeAssetStoreList(url, readPublicBaseUrl(req));
       res.status(200).json(data);
     } catch (error) {
       console.error('Asset Store list scrape failed', error);
@@ -69,6 +69,11 @@ const createMessageRouter = (client: Client, apiToken?: string): Router => {
 
   return router;
 };
+
+// Collage URLs have to be absolute so the composer can render them; PUBLIC_BASE_URL
+// covers deployments behind a proxy, where the request host is not the public one.
+const readPublicBaseUrl = (req: Request): string =>
+  process.env['PUBLIC_BASE_URL'] || `${req.protocol}://${req.get('host')}`;
 
 const isSupportedAssetListUrl = (rawUrl: string): boolean => {
   try {

@@ -43,6 +43,8 @@ Key variables:
 - `API_TOKEN`: Bearer token required by the HTTP API
 - `ALLOWED_ORIGINS`: comma-separated CORS origins
 - `DATABASE_URL`: Postgres connection string (required)
+- `PUBLIC_BASE_URL`: base URL the generated list collages are served from; only
+  needed behind a proxy, where the request host is not the public one
 
 ## Run locally
 
@@ -105,11 +107,11 @@ Endpoints:
 }
 ```
 
-An embed may carry up to 4 `images`. Two or more are merged server-side into a
-single 1200x800 collage that is uploaded as an attachment. Set `"collage": false`
-on the embed to opt out; the images are then sent as additional embeds sharing the
-embed `url`, which Discord renders as its own image gallery. The same gallery is
-used automatically whenever the collage cannot be built.
+An embed may carry up to 4 `images`; when it also has a `url`, the extra images
+are sent as additional embeds sharing that URL, which Discord renders as a
+single image gallery. Images that point at a collage this backend generated (see
+`/assetstore/list` below) are uploaded as attachments instead of being fetched by
+Discord.
 
 - `GET /fab/free` — scrapes Fab's limited-time-free blade and returns
   `{ "items": [{ "title", "imageUrl", "price", "freeUntil", "url" }] }`.
@@ -117,8 +119,14 @@ used automatically whenever the collage cannot be built.
   (`/packages/...`) or Fab (`/listings/...`) listing and returns
   `{ "title", "imageUrl", "price" }`.
 - `GET /assetstore/list?url=<list>` — scrapes a Unity Asset Store list page
-  (`/lists/...`) and returns `{ "title", "imageUrls": [] }` with the first
-  four item images.
+  (`/lists/...`) and returns `{ "title", "imageUrls": [], "collageUrl" }` with the
+  first four item images. Those images are merged once, here, into a single
+  1200x800 collage stored under `storage/collages` and served from `/collages`;
+  `collageUrl` points at it and belongs in the embed's first image slot. It is
+  omitted if fewer than two images were found or the merge failed, in which case
+  the raw `imageUrls` are used. A stored collage is deleted once the message reaches
+  at least one channel, since Discord keeps its own copy of the attachment; anything
+  left behind by a failed send is pruned after 24 hours.
 
 Example:
 

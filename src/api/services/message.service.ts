@@ -1,11 +1,10 @@
 import { channels } from '@prisma/client';
 import { AttachmentBuilder, Client, EmbedBuilder } from 'discord.js';
 import prisma from '../../db/prisma-client';
-import { buildCollage, MAX_COLLAGE_IMAGES } from '../utils/collage';
-import { fetchImageBuffer } from '../utils/imageFetch';
+import { deleteStoredCollage, readStoredCollage } from '../utils/collageStore';
 import { EmbedPayload, MessagePayload, ServiceResult } from './models/message.model';
 
-type CollageFile = { name: string; data: Buffer };
+type CollageFile = { name: string; data: Buffer; sourceUrl: string };
 type BuiltMessage = { embeds: EmbedBuilder[]; files: CollageFile[] };
 
 class MessageService {
@@ -54,6 +53,10 @@ class MessageService {
         error: 'Failed to deliver the message to any registered channel.',
       };
     }
+    // Discord stores its own copy of an uploaded attachment, so once the message is
+    // out the local file has no reader left.
+    await Promise.all(message.files.map((file) => deleteStoredCollage(file.sourceUrl)));
+
     if (sent < results.length) {
       const rate = Math.round((sent / results.length) * 100);
       console.warn(`Message delivered to ${sent} of ${results.length} channels (${rate}%).`);
@@ -115,39 +118,46 @@ class MessageService {
     return { embeds, files: files.filter((file) => referenced.has(`attachment://${file.name}`)) };
   }
 
-  // Several images are merged into one collage we upload ourselves, which keeps the
-  // layout under our control instead of Discord's. Anything that fails along the way
-  // falls back to the URL gallery below.
+  // A Unity list embed carries the collage this backend built when the list was scraped.
+  // Uploading the stored file keeps the image working regardless of whether Discord can
+  // reach the API; every other embed keeps using its plain image URLs.
   private async buildEmbedGroup(
     embed: EmbedPayload,
     index: number,
   ): Promise<{ embeds: EmbedBuilder[]; file?: CollageFile }> {
-    const imageUrls = this.readImageUrls(embed);
-    if (embed.collage === false || imageUrls.length < 2) {
-      return { embeds: this.buildEmbeds(embed) };
+    const embeds = this.buildEmbeds(embed);
+    const [first] = embeds;
+    const imageUrl = first?.data.image?.url;
+    if (!first || !imageUrl) {
+      return { embeds };
     }
 
-    const buffers = (await Promise.all(imageUrls.map(fetchImageBuffer))).filter(
-      (buffer): buffer is Buffer => buffer !== null,
-    );
-    const collage = buffers.length >= 2 ? await buildCollage(buffers) : null;
+    const collage = await readStoredCollage(imageUrl);
     if (!collage) {
-      console.warn('Falling back to the URL gallery for an embed the collage could not cover.');
-      return { embeds: this.buildEmbeds(embed) };
+      return { embeds };
     }
 
     const name = `collage-${index}.jpg`;
-    return {
-      embeds: [this.buildBaseEmbed(embed).setImage(`attachment://${name}`)],
-      file: { name, data: collage },
-    };
+    first.setImage(`attachment://${name}`);
+    return { embeds, file: { name, data: collage, sourceUrl: imageUrl } };
   }
 
   // Discord renders up to 4 images as a single gallery when the extra embeds
   // share the first embed's URL, so a multi-image payload expands to 1..4 embeds.
   private buildEmbeds(embed: EmbedPayload): EmbedBuilder[] {
-    const imageUrls = this.readImageUrls(embed);
-    const builder = this.buildBaseEmbed(embed);
+    const imageUrls = (embed.images ?? [])
+      .map((image) => image.url)
+      .filter((url) => Boolean(url))
+      .slice(0, 4);
+
+    const builder = new EmbedBuilder();
+    if (embed.title) builder.setTitle(embed.title);
+    if (embed.description) builder.setDescription(embed.description);
+    if (typeof embed.color === 'number') builder.setColor(embed.color);
+    if (embed.url) builder.setURL(embed.url);
+    if (embed.fields?.length) builder.addFields(embed.fields);
+    if (embed.footer?.text) builder.setFooter({ text: embed.footer.text });
+    if (embed.thumbnail?.url) builder.setThumbnail(embed.thumbnail.url);
     if (imageUrls[0]) builder.setImage(imageUrls[0]);
 
     const builders = [builder];
@@ -157,25 +167,6 @@ class MessageService {
       });
     }
     return builders;
-  }
-
-  private buildBaseEmbed(embed: EmbedPayload): EmbedBuilder {
-    const builder = new EmbedBuilder();
-    if (embed.title) builder.setTitle(embed.title);
-    if (embed.description) builder.setDescription(embed.description);
-    if (typeof embed.color === 'number') builder.setColor(embed.color);
-    if (embed.url) builder.setURL(embed.url);
-    if (embed.fields?.length) builder.addFields(embed.fields);
-    if (embed.footer?.text) builder.setFooter({ text: embed.footer.text });
-    if (embed.thumbnail?.url) builder.setThumbnail(embed.thumbnail.url);
-    return builder;
-  }
-
-  private readImageUrls(embed: EmbedPayload): string[] {
-    return (embed.images ?? [])
-      .map((image) => image.url)
-      .filter((url) => Boolean(url))
-      .slice(0, MAX_COLLAGE_IMAGES);
   }
 }
 
