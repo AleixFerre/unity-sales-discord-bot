@@ -8,6 +8,7 @@ import {
 export type AssetStoreListData = {
   title?: string;
   author?: string;
+  itemCount?: number;
   imageUrls: string[];
 };
 
@@ -22,6 +23,7 @@ export const extractAssetStoreListData = (
 ): AssetStoreListData => {
   const title = readListTitle(html);
   const author = readListAuthor(html);
+  const itemCount = readItemCount(html);
   const imageUrls = readItemImageUrls(html, limit);
   const data: AssetStoreListData = { imageUrls };
   if (title) {
@@ -29,6 +31,9 @@ export const extractAssetStoreListData = (
   }
   if (author) {
     data.author = author;
+  }
+  if (itemCount > 0) {
+    data.itemCount = itemCount;
   }
   return data;
 };
@@ -79,6 +84,24 @@ const stripTags = (html: string): string =>
 
 const stripStoreSuffix = (value: string): string =>
   value.replace(/\s*[|-]\s*(?:Unity\s*)?Asset Store\s*$/i, '').trim();
+
+// A card links to its package more than once (image and title), so the distinct
+// paths are the item count. The image list can't stand in for it — that one is
+// capped at the four images the collage needs.
+const readItemCount = (html: string): number => {
+  const firstCardIndex = html.search(/href="\/packages\//i);
+  if (firstCardIndex < 0) {
+    return 0;
+  }
+  const paths = new Set<string>();
+  for (const match of html.slice(firstCardIndex).matchAll(/href="(\/packages\/[^"]+)"/gi)) {
+    const href = match[1];
+    if (href) {
+      paths.add(href.replace(/[?#].*$/, '').replace(/\/+$/, '').toLowerCase());
+    }
+  }
+  return paths.size;
+};
 
 // Item cards come first in document order, each a /packages/ link followed by its
 // key image. Anchoring on the first package link skips the header and the list

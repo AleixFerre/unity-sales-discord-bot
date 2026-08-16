@@ -119,8 +119,9 @@ Discord.
   (`/packages/...`) or Fab (`/listings/...`) listing and returns
   `{ "title", "imageUrl", "price" }`.
 - `GET /assetstore/list?url=<list>` — scrapes a Unity Asset Store list page
-  (`/lists/...`) and returns `{ "title", "imageUrls": [], "collageUrl" }` with the
-  first four item images. Those images are merged once, here, into a single
+  (`/lists/...`) and returns `{ "title", "author", "itemCount", "imageUrls": [],
+  "collageUrl" }` with the first four item images. `itemCount` covers every item on
+  the page, not just those four. Those images are merged once, here, into a single
   1200x800 collage stored under `storage/collages` and served from `/collages`;
   `collageUrl` points at it and belongs in the embed's first image slot. It is
   omitted if fewer than two images were found or the merge failed, in which case
