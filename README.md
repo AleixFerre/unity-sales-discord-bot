@@ -1,7 +1,7 @@
 # Unity Sales Discord Bot (Backend)
 
 _Important: this project is meant to run alongside the frontend. Grab both repos._
-_Frontend repo: https://github.com/AleixFerre/unity-sales-discord-bot-frontend_
+_Frontend repo: <https://github.com/AleixFerre/unity-sales-discord-bot-frontend>_
 
 Discord bot + HTTP API for posting game-dev promo embeds (Unity Asset Store sales,
 Fab limited-time-free assets) to registered Discord channels. The frontend composes
@@ -120,7 +120,7 @@ Discord.
   `{ "title", "imageUrl", "price" }`.
 - `GET /assetstore/list?url=<list>` — scrapes a Unity Asset Store list page
   (`/lists/...`) and returns `{ "title", "author", "itemCount", "imageUrls": [],
-  "collageUrl" }` with the first four item images. `itemCount` covers every item on
+"collageUrl" }` with the first four item images. `itemCount` covers every item on
   the page, not just those four. Those images are merged once, here, into a single
   1200x800 collage stored under `storage/collages` and served from `/collages`;
   `collageUrl` points at it and belongs in the embed's first image slot. It is
@@ -148,8 +148,8 @@ npm run build
 npm start
 ```
 
-3. Ensure the bot can reach Discord and your HTTP API port is exposed.
-4. Update the frontend `backendUrl` (in its `src/app/config.json`) to point at `https://your-host`.
+1. Ensure the bot can reach Discord and your HTTP API port is exposed.
+2. Update the frontend `backendUrl` (in its `src/app/config.json`) to point at `https://your-host`.
 
 ## Project Structure
 
@@ -169,5 +169,5 @@ npm start
 
 ## Related repos
 
-- https://github.com/AleixFerre/unity-sales-discord-bot
-- https://github.com/AleixFerre/unity-sales-discord-bot-frontend
+- <https://github.com/AleixFerre/unity-sales-discord-bot>
+- <https://github.com/AleixFerre/unity-sales-discord-bot-frontend>
