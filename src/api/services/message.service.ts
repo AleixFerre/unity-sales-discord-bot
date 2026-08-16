@@ -40,8 +40,7 @@ class MessageService {
             files: message.files.map(({ name, data }) => new AttachmentBuilder(data, { name })),
           });
           return true;
-        } catch (error) {
-          console.error(`Failed to send message to channel ${channelid}`, error);
+        } catch {
           return false;
         }
       }),
@@ -56,7 +55,8 @@ class MessageService {
       };
     }
     if (sent < results.length) {
-      console.warn(`Message delivered to ${sent} of ${results.length} channels.`);
+      const rate = Math.round((sent / results.length) * 100);
+      console.warn(`Message delivered to ${sent} of ${results.length} channels (${rate}%).`);
     }
     return { ok: true };
   }
