@@ -7,7 +7,7 @@ export const MAX_COLLAGE_IMAGES = 4;
 const PADDING = 16;
 const GUTTER = 12;
 const RADIUS = 16;
-const BACKGROUND = { r: 30, g: 31, b: 34, alpha: 1 };
+const BACKGROUND = { r: 36, g: 36, b: 41, alpha: 1 };
 
 const INNER_WIDTH = COLLAGE_WIDTH - PADDING * 2;
 const INNER_HEIGHT = COLLAGE_HEIGHT - PADDING * 2;
