@@ -7,6 +7,9 @@ import { EmbedPayload, MessagePayload, ServiceResult } from './models/message.mo
 type CollageFile = { name: string; data: Buffer; sourceUrl: string };
 type BuiltMessage = { embeds: EmbedBuilder[]; files: CollageFile[] };
 
+const FOOTER_ICON_URL =
+  'https://cdn.discordapp.com/avatars/1454213455593865428/0a9f6341466ea38d70dc664ff0e7f4c7.webp';
+
 class MessageService {
   constructor(private readonly client: Client) {}
 
@@ -156,7 +159,8 @@ class MessageService {
     if (typeof embed.color === 'number') builder.setColor(embed.color);
     if (embed.url) builder.setURL(embed.url);
     if (embed.fields?.length) builder.addFields(embed.fields);
-    if (embed.footer?.text) builder.setFooter({ text: embed.footer.text });
+    if (embed.footer?.text)
+      builder.setFooter({ text: embed.footer.text, iconURL: FOOTER_ICON_URL });
     if (embed.thumbnail?.url) builder.setThumbnail(embed.thumbnail.url);
     if (imageUrls[0]) builder.setImage(imageUrls[0]);
 
