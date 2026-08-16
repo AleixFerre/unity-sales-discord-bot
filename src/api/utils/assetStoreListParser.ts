@@ -10,8 +10,8 @@ export type AssetStoreListData = {
   imageUrls: string[];
 };
 
-/** The list embed shows the first three item images. */
-export const LIST_IMAGE_LIMIT = 3;
+/** The list embed shows the first four item images, combined into one collage. */
+export const LIST_IMAGE_LIMIT = 4;
 
 // Asset Store list pages are server-rendered, so the item cards are in the HTML
 // that comes back from a plain (browser-fingerprinted) request.

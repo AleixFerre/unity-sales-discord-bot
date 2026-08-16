@@ -6,6 +6,8 @@ export type EmbedPayload = {
   footer?: { text: string };
   images?: Array<{ url: string }>;
   thumbnail?: { url: string };
+  /** Defaults to true: several images are merged into one collage attachment. */
+  collage?: boolean;
 };
 
 export type MessagePayload = {

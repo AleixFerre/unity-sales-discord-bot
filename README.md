@@ -105,9 +105,11 @@ Endpoints:
 }
 ```
 
-An embed may carry up to 4 `images`; when it also has a `url`, the extra images
-are sent as additional embeds sharing that URL, which Discord renders as a
-single image gallery.
+An embed may carry up to 4 `images`. Two or more are merged server-side into a
+single 1200x800 collage that is uploaded as an attachment. Set `"collage": false`
+on the embed to opt out; the images are then sent as additional embeds sharing the
+embed `url`, which Discord renders as its own image gallery. The same gallery is
+used automatically whenever the collage cannot be built.
 
 - `GET /fab/free` — scrapes Fab's limited-time-free blade and returns
   `{ "items": [{ "title", "imageUrl", "price", "freeUntil", "url" }] }`.
@@ -116,7 +118,7 @@ single image gallery.
   `{ "title", "imageUrl", "price" }`.
 - `GET /assetstore/list?url=<list>` — scrapes a Unity Asset Store list page
   (`/lists/...`) and returns `{ "title", "imageUrls": [] }` with the first
-  three item images.
+  four item images.
 
 Example:
 
